@@ -1,4 +1,4 @@
-package com.vinted.actioncable.client.kotlin
+package com.rafagonp.actioncable.client.kotlin
 
 /**
  * Collection class for creating (and internally managing) channel subscriptions.
@@ -34,6 +34,10 @@ class Subscriptions constructor(private val consumer: Consumer) {
         if (subscriptions.remove(subscription)) {
             consumer.send(Command.unsubscribe(subscription.identifier))
         }
+    }
+
+    fun find(subscription: Subscription) : Subscription? {
+        return subscriptions.find { it -> it.identifier == subscription.identifier }
     }
 
     fun contains(subscription: Subscription) = subscriptions.contains(subscription)

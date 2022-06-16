@@ -1,7 +1,7 @@
-package com.vinted.actioncable.client.kotlin
+package com.rafagonp.actioncable.client.kotlin
 
-import com.vinted.actioncable.client.kotlin.utils.MockWebServerResponseFactory
-import com.vinted.actioncable.client.kotlin.utils.TIMEOUT
+import com.rafagonp.actioncable.client.kotlin.utils.MockWebServerResponseFactory
+import com.rafagonp.actioncable.client.kotlin.utils.TIMEOUT
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

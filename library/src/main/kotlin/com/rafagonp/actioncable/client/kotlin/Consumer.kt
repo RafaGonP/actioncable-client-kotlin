@@ -1,6 +1,6 @@
-package com.vinted.actioncable.client.kotlin
+package com.rafagonp.actioncable.client.kotlin
 
-import com.vinted.actioncable.client.kotlin.Message.Type.*
+import com.rafagonp.actioncable.client.kotlin.Message.Type.*
 import java.net.URI
 
 /**

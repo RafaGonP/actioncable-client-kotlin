@@ -1,4 +1,4 @@
-package com.vinted.actioncable.client.kotlin
+package com.rafagonp.actioncable.client.kotlin
 
 import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.assertEquals

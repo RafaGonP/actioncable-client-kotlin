@@ -1,13 +1,10 @@
 # actioncable-client-kotlin
 
-[![Release](https://jitpack.io/v/vinted/actioncable-client-kotlin.svg)](https://jitpack.io/#vinted/actioncable-client-kotlin)
-[![Build Status](https://travis-ci.org/vinted/actioncable-client-kotlin.svg?branch=master)](https://travis-ci.org/vinted/actioncable-client-kotlin)
-
 Ruby [Action Cable](http://guides.rubyonrails.org/action_cable_overview.html) client library for Kotlin.
 
-## About Vinted's fork
+## About RafaGonP's fork
 
-This is a fork of original library: https://github.com/hosopy/actioncable-client-kotlin
+This is a fork of original library: https://github.com/vinted/actioncable-client-kotlin
 
 Main changes compared to original version:
 
@@ -207,7 +204,7 @@ val consumer = ActionCable.createConsumer(uri, options)
 ```
 MIT License
 
-Copyright (c) 2019 Vinted UAB
+Copyright (c) 2019 RafaGonP UAB
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

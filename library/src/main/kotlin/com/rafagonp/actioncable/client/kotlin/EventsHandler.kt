@@ -1,4 +1,4 @@
-package com.vinted.actioncable.client.kotlin
+package com.rafagonp.actioncable.client.kotlin
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.actor
