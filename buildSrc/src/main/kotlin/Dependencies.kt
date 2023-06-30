@@ -2,7 +2,7 @@ object Versions {
     const val APP_COMPAT = "1.0.2"
     const val KOTLIN = "1.3.31"
     const val COROUTINES = "1.2.1"
-    const val ANDROID_GRADLE_PLUGIN = "3.4.0"
+    const val ANDROID_GRADLE_PLUGIN = "4.1.2"
     const val JUNIT = "5.4.2"
     const val ROBOLECTRIC = "3.7.1"
     const val MOCKITO = "2.13.0"
@@ -11,7 +11,7 @@ object Versions {
     const val OKHTTP = "3.12.1"
 
     const val COMPILE_SDK_VERSION = 28
-    const val MIN_SDK_VERSION = 19
+    const val MIN_SDK_VERSION = 23
     const val TARGET_SDK_VERSION = 28
 
     private const val MAJOR = 0
