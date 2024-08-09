@@ -1,12 +1,10 @@
-import Versions.VERSION_NAME
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.gradle.api.publish.PublishingExtension
 
 plugins {
     id("com.android.library")
     id("kotlin-android")
     id("kotlin-android-extensions")
-    id("maven-publish")
+    `maven-publish`
 }
 
 group = "com.github.RafaGonP"
@@ -22,8 +20,6 @@ dependencies {
     implementation(Libs.GSON)
     testImplementation(Libs.JUNIT)
     testImplementation(Libs.MOCKWEBSERVER)
-    testImplementation(Libs.MOCKITO_KOTLIN)
-    testImplementation(Libs.MOCKITO_INLINE)
 }
 
 afterEvaluate {
