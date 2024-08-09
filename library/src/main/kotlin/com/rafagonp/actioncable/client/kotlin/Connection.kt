@@ -8,8 +8,6 @@ import java.net.URLEncoder
 import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
 
-typealias OkHttpClientFactory = () -> OkHttpClient
-
 class Connection constructor(
         private val uri: URI,
         private val options: Options
@@ -26,7 +24,7 @@ class Connection constructor(
      * @property reconnectionMaxAttempts The maximum number of attempts to reconnect.
      * @property reconnectionDelay First delay seconds of reconnection.
      * @property reconnectionDelayMax Max delay seconds of reconnection.
-     * @property okHttpClientFactory To use your own OkHttpClient, set this option.
+     * @property webSocketFactory To use your own OkHttp WebSocket.Factory, set this option.
      */
     data class Options(
             var sslContext: SSLContext? = null,
@@ -38,7 +36,7 @@ class Connection constructor(
             var reconnectionMaxAttempts: Int = 30,
             var reconnectionDelay: Int = 3,
             var reconnectionDelayMax: Int = 30,
-            var okHttpClientFactory: OkHttpClientFactory? = null
+            var webSocketFactory: WebSocket.Factory? = null
     )
 
     private enum class State {
@@ -52,7 +50,7 @@ class Connection constructor(
     var onOpen: suspend () -> Unit = {}
     var onMessage: suspend (jsonString: String) -> Unit = {}
     var onClose: () -> Unit = {}
-    var onFailure: (e: Exception) -> Unit = {}
+    var onFailure: (e: Throwable) -> Unit = {}
 
     private var state = State.CONNECTING
 
@@ -66,21 +64,19 @@ class Connection constructor(
         eventsHandler.handle(::performOpen)
     }
 
+    fun terminate() {
+        eventsHandler.handle {
+            state = State.TERMINATING
+            performClose()
+        }
+    }
+
     private suspend fun performOpen() {
         if (isOpen()) {
             fireOnFailure(IllegalStateException("Must close existing connection before opening"))
         } else {
             doOpen()
         }
-    }
-
-    private fun close() {
-        eventsHandler.handle(::performClose)
-    }
-
-    fun terminate() {
-        state = State.TERMINATING
-        close()
     }
 
     private suspend fun performClose() {
@@ -104,7 +100,7 @@ class Connection constructor(
             open()
         } else {
             isReopening = true
-            close()
+            eventsHandler.handle(::performClose)
         }
     }
 
@@ -123,12 +119,6 @@ class Connection constructor(
     private fun doOpen() {
         state = State.CONNECTING
 
-        val httpClientBuilder = (options.okHttpClientFactory?.invoke()
-                ?: OkHttpClient()).newBuilder()
-
-        options.sslContext?.let { httpClientBuilder.sslSocketFactory(it.socketFactory) }
-        options.hostnameVerifier?.let { httpClientBuilder.hostnameVerifier(it) }
-
         val urlBuilder = StringBuilder(uri.toString())
 
         options.query?.let { urlBuilder.append("?${it.toQueryString()}") }
@@ -139,11 +129,12 @@ class Connection constructor(
 
         val request = requestBuilder.build()
 
-        val httpClient = httpClientBuilder.build()
+        val webSocketFactory = options.webSocketFactory ?: OkHttpClient.Builder().apply {
+            options.sslContext?.let { sslSocketFactory(it.socketFactory) }
+            options.hostnameVerifier?.let { hostnameVerifier(it) }
+        }.build()
 
-        httpClient.newWebSocket(request, webSocketListener)
-
-        httpClient.dispatcher().executorService().shutdown()
+        webSocketFactory.newWebSocket(request, webSocketListener)
     }
 
     private suspend fun doSend(data: Any) {
@@ -156,7 +147,7 @@ class Connection constructor(
         }
     }
 
-    private fun fireOnFailure(error: Exception) {
+    private fun fireOnFailure(error: Throwable) {
         onFailure.invoke(error)
         if (isState(State.TERMINATING)) stopEventsHandler()
     }
@@ -185,7 +176,7 @@ class Connection constructor(
 
     private suspend fun handleFailure(throwable: Throwable) {
         state = State.CLOSED
-        fireOnFailure(Exception(throwable))
+        fireOnFailure(throwable)
     }
 
     private suspend fun handleClosure() {
@@ -211,7 +202,7 @@ class Connection constructor(
 private fun Map<String, String>.toQueryString(): String {
     return this.keys.asSequence().mapNotNull { key ->
         this[key]?.let {
-            "$key=${URLEncoder.encode(this[key], Charsets.UTF_8.toString())}"
+            "$key=${URLEncoder.encode(this[key], "UTF-8")}"
         }
     }.joinToString("&")
 }

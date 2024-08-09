@@ -6,15 +6,10 @@ class ConnectionMonitor(
 ) {
 
     private val eventsHandler = EventsHandler()
-
     private var pingedAt = 0L
-
     private var disconnectedAt = 0L
-
     private var startedAt = 0L
-
-    private var stoppedAt = 0L
-
+    private var connectionTerminated = false
     private var reconnectAttempts = 0
 
     private val interval: Long
@@ -49,13 +44,12 @@ class ConnectionMonitor(
 
     fun start() {
         reset()
-        stoppedAt = 0L
         startedAt = now()
         poll()
     }
 
     fun terminate() {
-        stoppedAt = now()
+        connectionTerminated = true
         eventsHandler.stop()
     }
 
@@ -64,10 +58,10 @@ class ConnectionMonitor(
     }
 
     private suspend fun reconnectIfNeeded() {
-        if (stoppedAt == 0L) {
+        if (!connectionTerminated) {
             reconnectIfStale()
+            poll()
         }
-        poll()
     }
 
     private fun reset() {
@@ -77,7 +71,7 @@ class ConnectionMonitor(
     private fun now(): Long = System.currentTimeMillis()
 
     private fun reconnectIfStale() {
-        if (options.reconnection && connectionIsStale && reconnectAttempts < options.reconnectionMaxAttempts) {
+        if (connectionIsStale && reconnectAttempts < options.reconnectionMaxAttempts) {
             reconnectAttempts++
             if (!disconnectedRecently) {
                 connection.reopen()
@@ -88,6 +82,6 @@ class ConnectionMonitor(
     private fun secondsSince(time: Long): Long = (now() - time) / 1000
 
     companion object {
-        private const val STALE_THRESHOLD = 6
+        const val STALE_THRESHOLD = 6
     }
 }

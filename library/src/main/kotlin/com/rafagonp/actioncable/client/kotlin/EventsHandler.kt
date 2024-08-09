@@ -16,16 +16,23 @@ class EventsHandler : CoroutineScope {
     }
 
     fun handle(operation: suspend () -> Unit) = launch {
-        actor.send(operation)
+        send(operation)
     }
 
     fun handleWithDelay(operation: suspend () -> Unit, duration: Long) = launch {
         delay(duration)
-        actor.send(operation)
+        send(operation)
     }
 
+    private suspend fun send(operation: suspend () -> Unit) {
+        if (!actor.isClosedForSend) {
+            actor.send(operation)
+        }
+    }
+
+    // TODO: actor.close() disabled due to possible ClosedSendChannelException. Issue should be fixed in the next version.
     fun stop() {
-        actor.close()
+        //   actor.close()
         coroutineContext.cancel()
     }
 }

@@ -12,12 +12,16 @@ Main changes compared to original version:
 * Updated okhttp 2.x ---> okhttp 3.x
 * Changed serializer klaxon ---> gson
 
+## Contribution
+
+Pull requests are always welcome.
+
 # Usage
 
 ## Requirements
 
 * Kotlin 1.3 or later
-* [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) 1.2.1 or later
+* [kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) 1.3.x or later
 * [Gson](https://github.com/google/gson) 2.x 
 * [okhttp](https://github.com/square/okhttp) 3.x
 
@@ -25,25 +29,25 @@ Main changes compared to original version:
 
 ```groovy
 repositories {
-    jcenter()
+    mavenCentral()
     maven { url "https://jitpack.io" }
 }
 
 dependencies {
-    implementation 'com.vinted:actioncable-client-kotlin:0.2.1'
+    implementation 'com.RafaGonP:actioncable-client-kotlin:<version>'
 }
 ```
 
 ## Basic
 
 ```kotlin
-// 1. Setup
+// Setup
 val uri = URI("ws://cable.example.com")
-val consumer = ActionCable.createConsumer(uri)
+var consumer = ActionCable.createConsumer(uri)
 
-// 2. Create subscription
-val appearanceChannel = Channel("AppearanceChannel")
-val subscription = consumer.subscriptions.create(appearanceChannel)
+// Create subscription
+val fooChannel = Channel("FooChannel")
+val subscription = consumer.subscriptions.create(fooChannel)
 
 subscription.onConnected = {
     // Called when the subscription has been successfully completed
@@ -76,15 +80,24 @@ subscription.onFailed = { error ->
     // Called when the subscription encounters any error
 }
 
-// 3. Establish connection
+// Establish connection
 consumer.connect()
 
-// 4. Perform any action
+// Perform any action
 subscription.perform("away")
 
-// 5. Perform any action with params
+// Perform any action with params
 subscription.perform("hello", mapOf("name" to "world"))
+
+// Terminate connection
+consumer.disconnect()
+consumer = null
 ```
+
+Few notes:
+- You can create new channels and instantiate corresponding subscriptions after ```consumer.connect()``` call. 
+- It is allowed to have multiple subscriptions for the single channel. 
+- You can check if at least one subscription exists for the particular channel via: ```consumer.subscriptions.contains(channel)```
 
 ## Passing Parameters to Channel
 
@@ -95,7 +108,7 @@ val chatChannel = Channel("ChatChannel", mapOf("room_id" to 1))
 The parameter container is `Map<String, Any?>` and is converted to `JsonObject(Gson)` internally.
 To know what type of value can be passed, please read [Gson user guide](https://github.com/google/gson).
 
-## Passing Parameters to Subscription#perform
+## Sending Data via Subscription
 
 ```kotlin
 subscription.perform("send", mapOf(
@@ -126,17 +139,17 @@ val consumer = ActionCable.createConsumer(uri, options)
 Below is a list of available options.
 
 * sslContext
-    
+
     ```kotlin
     options.connection.sslContext = yourSSLContextInstance
     ```
-    
+
 * hostnameVerifier
-    
+
     ```kotlin
     options.connection.hostnameVerifier = yourHostnameVerifier
     ```
-    
+
 * query
     
     ```kotlin
@@ -165,16 +178,17 @@ Below is a list of available options.
     options.connection.reconnectionMaxAttempts = 30
     ```
 
-* okHttpClientFactory
-    * Factory instance to create your own OkHttpClient.
-    * If `okHttpClientFactory` is not set, just create OkHttpClient by `OkHttpClient()`.
-    
+* webSocketFactory
+    * Pass your own instance of OkHttp `WebSocket.Factory`
+    * Note: if you provide a custom `WebSocket.Factory` implementation, then `sslContext` and `hostnameVerifier` options are ignored. You must set those options directly in your custom implementation instead of setting it on `options.connection`. 
+
     ```kotlin
-    options.connection.okHttpClientFactory = {
-        OkHttpClient().also {
-            it.networkInterceptors().add(StethoInterceptor())
-        }
-    }
+    options.connection.webSocketFactory = OkHttpClient.Builder().apply {
+        // Configure your OkHttpClient how you like
+        networkInterceptors().add(StethoInterceptor())
+        sslSocketFactory(yourSocketFactory)
+        hostnameVerifier(yourHostnameVerifier)
+    }.build()
     ```
 
 ## Authentication
